@@ -6,3 +6,17 @@ assets.cpp:
   assets/no-image.png:
     name: asset_no_image
 
+assets_tiled.cpp:
+  prefix: at_
+
+  assets/sokoblit-base.tmx:
+    name: base
+
+  assets/level-sprites.png:
+    name: sprites
+
+  assets/menu-sprites.png:
+    name: menu_sprites
+
+  assets/menu-map.tmx:
+    name: menu_map

@@ -1,6 +1,11 @@
-#include "game.hpp"
+
+
+#include "32blit.hpp"
+#include "Menu.hpp"
 
 using namespace blit;
+
+Menu *g_menu = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -9,7 +14,8 @@ using namespace blit;
 // setup your game here
 //
 void init() {
-    set_screen_mode(ScreenMode::hires);
+    blit::set_screen_mode(blit::ScreenMode::hires);
+    g_menu = new Menu();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -31,6 +37,12 @@ void render(uint32_t time) {
     screen.rectangle(Rect(0, 0, 320, 14));
     screen.pen = Pen(0, 0, 0);
     screen.text("Hello 32blit!", minimal_font, Point(5, 4));
+
+    // Draw the tilemap
+    if ( nullptr != g_menu )
+    {
+        g_menu->render( time );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
