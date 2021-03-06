@@ -22,9 +22,12 @@ class Menu
     blit::TileMap  *c_menu_map;
     uint8_t        *c_menu_tiles;
 
+    blit::Rect      level_rect( uint8_t );
+
   public:
                     Menu( void );
                    ~Menu( void );
+    blit::Mat3      map_transform( uint8_t ); 
     void            update( uint32_t, uint8_t );
     void            render( uint32_t );
 };
