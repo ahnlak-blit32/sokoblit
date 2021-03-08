@@ -109,7 +109,7 @@ void render( uint32_t p_time )
   blit::screen.clear();
 
   /* Work out which tilemap(s) we should render, and render them. */
-  if ( MODE_GAME != g_mode )
+  //if ( MODE_GAME != g_mode )
   {
     if ( nullptr != g_menu )
     {

@@ -89,8 +89,8 @@ blit::Rect Menu::level_rect( uint8_t p_level )
   blit::Rect l_rect = blit::Rect( 0, 0, 0, 0 );
 
   /* Work out the zoomed size of it. */
-  l_rect.w = blit::screen.bounds.w / ( 1.0f + c_zoom / 25.0f );
-  l_rect.h = blit::screen.bounds.h / ( 1.0f + c_zoom / 25.0f );
+  l_rect.w = blit::screen.bounds.w / ( 1.0f + c_zoom / 25.0f ) - 2;
+  l_rect.h = blit::screen.bounds.h / ( 1.0f + c_zoom / 25.0f ) - 2;
 
   /* And then work out the location, too - start with the map location. */
   blit::Point l_levelloc = level_centre( p_level );
@@ -100,8 +100,8 @@ blit::Rect Menu::level_rect( uint8_t p_level )
   l_centre -= l_centre * ( 1.0f - c_zoom / 100.0f );
 
   /* Apply the zoom transform. */
-  l_rect.x = l_centre.x / ( 1.0f + c_zoom / 25.0f );
-  l_rect.y = l_centre.y / ( 1.0f + c_zoom / 25.0f );
+  l_rect.x = l_centre.x / ( 1.0f + c_zoom / 25.0f ) + 1;
+  l_rect.y = l_centre.y / ( 1.0f + c_zoom / 25.0f ) + 1;
 
   /* All done. */
   return l_rect;
@@ -145,6 +145,75 @@ void Menu::update( uint32_t p_time, uint8_t p_zoom )
   /* Save the zoom factor, making sure it's a sensible value. */
   c_zoom = ( p_zoom > 100 ) ? 100 : p_zoom;
 
+  /* We only respond to user input when we're fully zoomed. */
+  if ( c_zoom < 100 )
+  {
+    return;
+  }
+
+  /* So, the only inputs are left/right/up/down around the levels. */
+  if ( blit::buttons.pressed & blit::Button::DPAD_LEFT )
+  {
+    /* Left is mostly simple, long as you're not at the edge already. */
+    if ( ( 1 != g_level ) && ( 6 != g_level ) && ( 11 != g_level ) &&
+         ( 13 != g_level ) && ( 18 != g_level ) )
+    {
+      g_level--;
+    }
+  }
+
+  if ( blit::buttons.pressed & blit::Button::DPAD_RIGHT )
+  {
+    /* Same as right. */
+    if ( ( 5 != g_level ) && ( 10 != g_level ) && ( 12 != g_level ) &&
+         ( 17 != g_level ) && ( 22 != g_level ) )
+    {
+      g_level++;
+    }
+  }
+
+  /* Up is ... a little messier. */
+  if ( blit::buttons.pressed & blit::Button::DPAD_UP )
+  {
+    /* Simple options first. */
+    if ( ( 6 <= g_level ) && 
+         ( ( 11 >= g_level ) || ( 17 <= g_level ) ) )
+    {
+      g_level -= 5;
+    }
+
+    /* And five edge cases. */
+    else if ( ( 12 == g_level ) || ( 13 == g_level ) )
+    {
+      g_level -= 2;
+    }
+    else if ( ( 14 <= g_level ) && ( 16 >= g_level ) )
+    {
+      g_level -= 7;
+    }
+  }
+
+  /* As is down. */
+  if ( blit::buttons.pressed & blit::Button::DPAD_DOWN )
+  {
+    /* Simple options first. */
+    if ( ( 17 >= g_level ) && 
+         ( ( 6 >= g_level ) || ( 12 <= g_level ) ) )
+    {
+      g_level += 5;
+    }
+
+    /* And five edge cases. */
+    else if ( ( 10 == g_level ) || ( 11 == g_level ) )
+    {
+      g_level += 2;
+    }
+    else if ( ( 7 <= g_level ) && ( 9 >= g_level ) )
+    {
+      g_level += 7;
+    }
+  }
+
   /* All done. */
   return;
 }
@@ -170,7 +239,7 @@ void Menu::render( uint32_t p_time )
   blit::Rect l_level = level_rect( g_level );
   blit::screen.pen = blit::Pen( 250, ( p_time % 255 ), 150 + ( p_time % 105 ) );
   blit::screen.h_span( l_level.tl(), l_level.w );
-  blit::screen.h_span( l_level.bl(), l_level.w );
+  blit::screen.h_span( l_level.bl(), l_level.w+1 );
   blit::screen.v_span( l_level.tl(), l_level.h );
   blit::screen.v_span( l_level.tr(), l_level.h );
 
