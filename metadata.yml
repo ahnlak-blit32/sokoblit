@@ -2,9 +2,9 @@ title: SokoBlit
 description: A crate-shuffling good time!
 author: ahnlak
 splash:
-  file: assets/no-image.png
+  file: assets/sokoblit-splash.png
 icon:
-  file: assets/no-icon.png
+  file: assets/sokoblit-icon.png
 version: v0.0.1
 category: game
 url: https://github.com/ahnlak-blit32/sokoblit

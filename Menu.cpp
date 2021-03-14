@@ -19,6 +19,7 @@
 #include "sokoblit.hpp"
 
 #include "Menu.hpp"
+#include "assets.hpp"
 #include "assets_tiled.hpp"
 
 
@@ -30,8 +31,9 @@
 
 Menu::Menu( void )
 {
-  /* Load up the spritesheet we'll be using. */
+  /* Load up the spritesheets and images we'll be using. */
   c_menu_sprites = blit::Surface::load( at_menu_sprites );
+  c_menu_splash = blit::Surface::load( a_menu_splash );
 
   /* And the tile map, too - copied into a malleable chunk of memory. */
   c_menu_tiles = new uint8_t[at_menu_map_length];
@@ -136,15 +138,11 @@ blit::Mat3 Menu::map_transform( uint8_t p_scanline )
 
 
 /*
- * update - updates the display state of the menu; the zoom factor is used for
- *          the transitioning from game to menu, and back.
+ * update - updates the display state of the menu.
  */
 
-void Menu::update( uint32_t p_time, uint8_t p_zoom )
+void Menu::update( uint32_t p_time )
 {
-  /* Save the zoom factor, making sure it's a sensible value. */
-  c_zoom = ( p_zoom > 100 ) ? 100 : p_zoom;
-
   /* We only respond to user input when we're fully zoomed. */
   if ( c_zoom < 100 )
   {
@@ -221,10 +219,14 @@ void Menu::update( uint32_t p_time, uint8_t p_zoom )
 
 /*
  * render - draws the current state of the menu; largely handled by the tilemap.
+ *          the zoom factor is used for the transitioning from game to menu, and back
  */
 
-void Menu::render( uint32_t p_time )
+void Menu::render( uint32_t p_time, uint8_t p_zoom )
 {
+  /* Save the zoom factor, making sure it's a sensible value. */
+  c_zoom = ( p_zoom > 100 ) ? 100 : p_zoom;
+
   /* Set the alpha for all of this depending on the zoom. */
   uint8_t l_previous_alpha = blit::screen.alpha;
   blit::screen.alpha = c_zoom < 20 ? 0 : ( c_zoom - 20 ) * 3.18;
@@ -242,6 +244,14 @@ void Menu::render( uint32_t p_time )
   blit::screen.h_span( l_level.bl(), l_level.w+1 );
   blit::screen.v_span( l_level.tl(), l_level.h );
   blit::screen.v_span( l_level.tr(), l_level.h );
+
+  /* Add in the menu splash, fading in as we reach full zoom. */
+  blit::screen.blit( c_menu_splash, c_menu_splash->clip, 
+                     blit::Point(
+                      ( blit::screen.bounds.w - c_menu_splash->bounds.w ) / 2,
+                      ( blit::screen.bounds.h - c_menu_splash->bounds.h ) / 2
+                     )
+                    );
 
   /* Reset the alpha to what it was before. */
   blit::screen.alpha = l_previous_alpha;

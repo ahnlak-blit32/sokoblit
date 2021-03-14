@@ -19,14 +19,17 @@
 #include "32blit.hpp"
 #include "sokoblit.hpp"
 
+#include "Game.hpp"
 #include "Menu.hpp"
 
 
 /* Global variables (yes, I know...) */
 
+Game     *g_game = nullptr;
 Menu     *g_menu = nullptr;
-uimode_t  g_mode = MODE_TO_MENU;
-uint8_t   g_level = 8;
+uimode_t  g_mode = MODE_MENU;
+uint8_t   g_level = 1;
+uint8_t   g_zoom = 100;
 
 
 /* Functions. */
@@ -94,6 +97,7 @@ void init( void )
 
   /* Create the menu and game objects that handle everything. */
   g_menu = new Menu();
+  g_game = new Game();
 }
 
 
@@ -109,12 +113,16 @@ void render( uint32_t p_time )
   blit::screen.clear();
 
   /* Work out which tilemap(s) we should render, and render them. */
-  //if ( MODE_GAME != g_mode )
+  if ( MODE_GAME != g_mode )
   {
     if ( nullptr != g_menu )
     {
-        g_menu->render( p_time );
+        g_menu->render( p_time, g_zoom );
     }
+  }
+  if ( nullptr != g_game )
+  {
+      g_game->render( p_time, g_zoom );
   }
 
   /* All done */
@@ -128,13 +136,11 @@ void render( uint32_t p_time )
 
 void update( uint32_t p_time )
 {
-  static uint8_t l_progress = 0;
-
   /* If we're transitioning, update the progress. */
   if ( MODE_TO_GAME == g_mode )
   {
     /* Decrease progress, and if we hit zero we've reached GAME. */
-    if ( 0 == --l_progress )
+    if ( 0 == --g_zoom )
     {
       g_mode = MODE_GAME;
     }
@@ -143,14 +149,15 @@ void update( uint32_t p_time )
   if ( MODE_TO_MENU == g_mode )
   {
     /* Increase progress, and if we hit 100 we've reached MENU. */
-    if ( 100 == ++l_progress )
+    if ( 100 == ++g_zoom )
     {
       g_mode = MODE_MENU;
     }
   }
 
   /* Check the menu button, which is a universal toggle. */
-  if ( blit::buttons.pressed & blit::Button::MENU )
+  if ( ( blit::buttons.pressed & blit::Button::MENU ) ||
+       ( blit::buttons.pressed & blit::Button::A ) )
   {
     /* Only acts if we're in a steady state. */
     if ( MODE_MENU == g_mode )
@@ -168,7 +175,14 @@ void update( uint32_t p_time )
   {
     if ( nullptr != g_menu )
     {
-      g_menu->update( p_time, l_progress );
+      g_menu->update( p_time );
+    }
+  }
+  if ( MODE_MENU != g_mode )
+  {
+    if ( nullptr != g_game )
+    {
+      g_game->update( p_time );
     }
   }
 

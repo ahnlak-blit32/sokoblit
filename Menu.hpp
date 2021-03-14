@@ -19,6 +19,7 @@ class Menu
   private:
     uint8_t         c_zoom;
     blit::Surface  *c_menu_sprites;
+    blit::Surface  *c_menu_splash;
     blit::TileMap  *c_menu_map;
     uint8_t        *c_menu_tiles;
 
@@ -28,8 +29,8 @@ class Menu
                     Menu( void );
                    ~Menu( void );
     blit::Mat3      map_transform( uint8_t ); 
-    void            update( uint32_t, uint8_t );
-    void            render( uint32_t );
+    void            update( uint32_t );
+    void            render( uint32_t, uint8_t );
 };
 
 #endif /* _MENU_HPP_ */

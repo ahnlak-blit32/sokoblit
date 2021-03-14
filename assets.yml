@@ -3,17 +3,17 @@
 # References can be picked up by including assets.hpp
 
 assets.cpp:
-  assets/no-image.png:
-    name: asset_no_image
+  assets/menu-splash.png:
+    name: a_menu_splash
 
 assets_tiled.cpp:
   prefix: at_
 
-  assets/sokoblit-base.tmx:
-    name: base
+  assets/game-map.tmx:
+    name: game_map
 
-  assets/level-sprites.png:
-    name: sprites
+  assets/game-sprites.png:
+    name: game_sprites
 
   assets/menu-sprites.png:
     name: menu_sprites

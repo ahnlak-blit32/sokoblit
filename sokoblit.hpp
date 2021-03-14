@@ -14,6 +14,8 @@
 
 #include "32blit.hpp"
 
+#define  SOKOBLIT_LEVEL_MAX   22
+
 typedef enum 
 {
   MODE_MENU,
