@@ -62,16 +62,13 @@ Game::Game( void )
         l_tile.x = l_origin.x + x;
         if ( c_game_map->tile_at( l_tile ) == TILED_PLAYER_HOME )
         {
-          c_player[l_level].location.x = x * 8;
-          c_player[l_level].location.y = y * 8;
+          c_player[l_level] = new Player( x, y );
           l_found = true;
           break;
         }
       }
       if ( l_found ) break;
     }
-    c_player[l_level].direction = DIR_DOWN;
-    c_player[l_level].animation = 0;
   }
 
   /* And a few other defaults. */
@@ -105,6 +102,16 @@ Game::~Game( void )
   {
     delete c_game_sprites;
     c_game_sprites = nullptr;
+  }
+
+  /* Lastly all those lovely Player objects. */
+  for( uint8_t l_level = 0; l_level < SOKOBLIT_LEVEL_MAX; l_level++ )
+  {
+    if ( nullptr != c_player[l_level] )
+    {
+      delete c_player[l_level];
+      c_player[l_level] = nullptr;
+    }
   }
 
   /* All done. */
@@ -235,73 +242,46 @@ blit::Mat3 Game::map_transform( uint8_t p_scanline )
 
 void Game::update( uint32_t p_time )
 {
+  direction_t l_move = DIR_NONE;
+
   /* We only respond to user input when we're fully zoomed. */
   if ( c_zoom > 0 )
   {
     return;
   }
 
-  /* So, the only inputs are left/right/up/down around the levels. */
+  /* Need to keep the player updating. */
+  c_player[g_level]->update();
+
+  /* We only pay attention to movement commands when the player isn't already */
+  /* in motion - otherwise things will get ... confusing.                     */
+  if ( c_player[g_level]->moving() )
+  {
+    return;
+  }
+
+  /* So, find out what direction the player wants to go. */
   if ( blit::buttons.pressed & blit::Button::DPAD_LEFT )
   {
-    /* Left is mostly simple, long as you're not at the edge already. */
-    if ( ( 1 != g_level ) && ( 6 != g_level ) && ( 11 != g_level ) &&
-         ( 13 != g_level ) && ( 18 != g_level ) )
-    {
-      g_level--;
-    }
+    l_move = DIR_LEFT;
   }
-
   if ( blit::buttons.pressed & blit::Button::DPAD_RIGHT )
   {
-    /* Same as right. */
-    if ( ( 5 != g_level ) && ( 10 != g_level ) && ( 12 != g_level ) &&
-         ( 17 != g_level ) && ( 22 != g_level ) )
-    {
-      g_level++;
-    }
+    l_move = DIR_RIGHT;
   }
-
-  /* Up is ... a little messier. */
   if ( blit::buttons.pressed & blit::Button::DPAD_UP )
   {
-    /* Simple options first. */
-    if ( ( 6 <= g_level ) && 
-         ( ( 11 >= g_level ) || ( 17 <= g_level ) ) )
-    {
-      g_level -= 5;
-    }
-
-    /* And five edge cases. */
-    else if ( ( 12 == g_level ) || ( 13 == g_level ) )
-    {
-      g_level -= 2;
-    }
-    else if ( ( 14 <= g_level ) && ( 16 >= g_level ) )
-    {
-      g_level -= 7;
-    }
+    l_move = DIR_UP;
   }
-
-  /* As is down. */
   if ( blit::buttons.pressed & blit::Button::DPAD_DOWN )
   {
-    /* Simple options first. */
-    if ( ( 17 >= g_level ) && 
-         ( ( 6 >= g_level ) || ( 12 <= g_level ) ) )
-    {
-      g_level += 5;
-    }
+    l_move = DIR_DOWN;
+  }
 
-    /* And five edge cases. */
-    else if ( ( 10 == g_level ) || ( 11 == g_level ) )
-    {
-      g_level += 2;
-    }
-    else if ( ( 7 <= g_level ) && ( 9 >= g_level ) )
-    {
-      g_level += 7;
-    }
+  /* Ask the player to do that move, then. */
+  if ( DIR_NONE != l_move )
+  {
+    c_player[g_level]->move( l_move );
   }
 
   /* All done. */
@@ -332,8 +312,8 @@ void Game::render( uint32_t p_time, uint8_t p_zoom )
   /* We only draw the more dynamic elements when we're full sized. */
   if ( 0 == c_zoom )
   {
-    /* Drop in the player, we remember that location per level. */
-    blit::screen.sprite( blit::Rect( 0, 4, 2, 2 ), c_player[g_level].location );
+    /* Drop in the player for the current level. */
+    c_player[g_level]->render();
     /*__RETURN__*/
   }
 

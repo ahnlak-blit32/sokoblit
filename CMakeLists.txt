@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.9)
 project(sokoblit)
 
 # Add your sources here (adding headers is optional, but helps some CMake generators)
-set(PROJECT_SOURCE sokoblit.cpp Menu.cpp Game.cpp)
+set(PROJECT_SOURCE sokoblit.cpp Menu.cpp Game.cpp Player.cpp)
 
 # ... and any other files you want in the release here
 set(PROJECT_DISTRIBS LICENSE README.md)
@@ -17,7 +17,7 @@ else()
   add_compile_options("-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
 endif()
 
-find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk)
+find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk-v0.1.11)
 
 blit_executable (${PROJECT_NAME} ${PROJECT_SOURCE})
 blit_assets_yaml (${PROJECT_NAME} assets.yml)

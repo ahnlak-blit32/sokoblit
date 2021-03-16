@@ -14,27 +14,13 @@
 
 #include "32blit.hpp"
 #include "sokoblit.hpp"
+#include "Player.hpp"
 
 /* Constants based on tiled tiles - tinker at your peril! */
 
 #define TILED_PLAYER_HOME 76
 
 #define ANIMATION_FRAMES  3
-
-typedef enum
-{
-  DIR_DOWN,
-  DIR_LEFT,
-  DIR_UP,
-  DIR_RIGHT
-} direction_t;
-
-typedef struct
-{
-  blit::Point location;
-  direction_t direction;
-  uint8_t     animation;
-} player_t;
 
 class Game
 {
@@ -44,7 +30,7 @@ class Game
     blit::TileMap  *c_game_map;
     uint8_t        *c_game_tiles;
 
-    player_t        c_player[SOKOBLIT_LEVEL_MAX];
+    Player         *c_player[SOKOBLIT_LEVEL_MAX+1];
 
     blit::Rect      level_rect( uint8_t );
     blit::Point     level_tile_origin( uint8_t );
