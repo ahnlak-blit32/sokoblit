@@ -199,6 +199,32 @@ blit::Point Game::level_tile_origin( uint8_t p_level )
 
 
 /*
+ * set_tile - updates the tile map with the new tile type. This takes into 
+ *            account the fact that our logical tiles are in fact two game-tiles
+ *            square!
+ */
+
+bool Game::set_tile( blit::Point p_location, uint8_t p_type )
+{
+  /* A very quick sanity check that we're on the actual map! */
+  if ( ( p_location.x > ( c_game_map->bounds.w - 2 ) ) ||
+       ( p_location.y > ( c_game_map->bounds.h - 2 ) ) )
+  {
+    return false;
+  }
+
+  /* Relatively simple here, we have four different tiles to set. */
+  c_game_map->tiles[c_game_map->offset( p_location )] = p_type;
+  c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 0 ) )] = p_type+1;
+  c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 0, 1 ) )] = p_type+16;
+  c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 1 ) )] = p_type+17;
+
+  /* All done. */
+  return true;
+}
+
+
+/*
  * map_transform - callback for the tilemap render, where we apply a suitable
  *                 level of zoom.
  */
@@ -251,6 +277,8 @@ void Game::update( uint32_t p_time )
   }
 
   /* Need to keep the player updating. */
+  bool l_was_moving = c_player[g_level]->moving();
+  bool l_was_pushing = c_player[g_level]->pushing();
   c_player[g_level]->update();
 
   /* We only pay attention to movement commands when the player isn't already */
@@ -260,28 +288,92 @@ void Game::update( uint32_t p_time )
     return;
   }
 
+  /* If we have just finished moving, and we were pushing a crate, we need */
+  /* to park it where it was going...                                      */
+  if ( l_was_moving && l_was_pushing )
+  {
+    blit::Point l_crate = c_player[g_level]->location();
+    switch( c_player[g_level]->facing() )
+    {
+      case DIR_LEFT:
+        l_crate -= blit::Point( 2, 0 );
+        break;
+      case DIR_RIGHT:
+        l_crate += blit::Point( 2, 0 );
+        break;
+      case DIR_UP:
+        l_crate -= blit::Point( 0, 2 );
+        break;
+      case DIR_DOWN:
+        l_crate += blit::Point( 0, 2 );
+        break;
+    }
+    set_tile( l_crate, TILED_CRATE );
+  }
+
   /* So, find out what direction the player wants to go. */
-  if ( blit::buttons.pressed & blit::Button::DPAD_LEFT )
+  blit::Point l_location = level_tile_origin( g_level ) + c_player[g_level]->location();
+  blit::Point l_target, l_crate_target;
+
+  if ( ( blit::pressed( blit::Button::DPAD_LEFT ) ) || ( blit::joystick.x < -0.3f ) )
   {
     l_move = DIR_LEFT;
+    l_target = l_location - blit::Point( 2, 0 );
+    l_crate_target = l_location - blit::Point( 4, 0 );
   }
-  if ( blit::buttons.pressed & blit::Button::DPAD_RIGHT )
+  if ( ( blit::pressed( blit::Button::DPAD_RIGHT ) ) || ( blit::joystick.x > 0.3f ) )
   {
     l_move = DIR_RIGHT;
+    l_target = l_location + blit::Point( 2, 0 );
+    l_crate_target = l_location + blit::Point( 4, 0 );
   }
-  if ( blit::buttons.pressed & blit::Button::DPAD_UP )
+  if ( ( blit::pressed( blit::Button::DPAD_UP ) ) || ( blit::joystick.y < -0.3f ) )
   {
     l_move = DIR_UP;
+    l_target = l_location - blit::Point( 0, 2 );
+    l_crate_target = l_location - blit::Point( 0, 4 );
   }
-  if ( blit::buttons.pressed & blit::Button::DPAD_DOWN )
+  if ( ( blit::pressed( blit::Button::DPAD_DOWN ) ) || ( blit::joystick.y > 0.3f ) )
   {
     l_move = DIR_DOWN;
+    l_target = l_location + blit::Point( 0, 2 );
+    l_crate_target = l_location + blit::Point( 0, 4 );
   }
 
   /* Ask the player to do that move, then. */
   if ( DIR_NONE != l_move )
   {
-    c_player[g_level]->move( l_move );
+    /* Look at the destinations, work out the various flags. */
+    bool l_blocked = false;
+    bool l_pushing = false;
+
+    /* Is our move target a wall? */
+    uint8_t l_target_tile = c_game_map->tile_at( l_target );
+    if ( TILED_WALL == l_target_tile )
+    {
+      l_blocked = true;
+    }
+    else if ( TILED_CRATE == l_target_tile )
+    {
+      /* If it's a crate we need to work out if *that* moves into free space. */
+      uint8_t l_crate_tile = c_game_map->tile_at( l_crate_target );
+      if ( ( TILED_WALL == l_crate_tile ) || ( TILED_CRATE == l_crate_tile ) )
+      {
+        /* It's like walking into a wall. */
+        l_blocked = true;
+      }
+      else
+      {
+        /* Update the underlying tilemap to reflect that the crate has moved. */
+        set_tile( l_target, TILED_EMPTY );
+
+        /* Flag that we're also pushing a crate. */
+        l_pushing = true;
+      }
+    }
+
+    /* And finally, ask the player to move herself. */
+    c_player[g_level]->move( l_move, l_blocked, l_pushing );
   }
 
   /* All done. */

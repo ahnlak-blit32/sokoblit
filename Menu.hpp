@@ -22,6 +22,7 @@ class Menu
     blit::Surface  *c_menu_splash;
     blit::TileMap  *c_menu_map;
     uint8_t        *c_menu_tiles;
+    uint8_t         c_movetimer;
 
     blit::Rect      level_rect( uint8_t );
 

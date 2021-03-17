@@ -16,12 +16,6 @@
 #include "sokoblit.hpp"
 #include "Player.hpp"
 
-/* Constants based on tiled tiles - tinker at your peril! */
-
-#define TILED_PLAYER_HOME 76
-
-#define ANIMATION_FRAMES  3
-
 class Game
 {
   private:
@@ -34,6 +28,7 @@ class Game
 
     blit::Rect      level_rect( uint8_t );
     blit::Point     level_tile_origin( uint8_t );
+    bool            set_tile( blit::Point, uint8_t );
 
   public:
                     Game( void );

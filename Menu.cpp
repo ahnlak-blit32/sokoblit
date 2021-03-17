@@ -45,6 +45,7 @@ Menu::Menu( void )
 
   /* And a few other defaults. */
   c_zoom = 100;
+  c_movetimer = 0;
 
   /* All done! */
   return;
@@ -149,8 +150,15 @@ void Menu::update( uint32_t p_time )
     return;
   }
 
+  /* Put in a repeat delay on movements. */
+  if ( c_movetimer > 0 )
+  {
+    c_movetimer--;
+    return;
+  }
+
   /* So, the only inputs are left/right/up/down around the levels. */
-  if ( blit::buttons.pressed & blit::Button::DPAD_LEFT )
+  if ( ( blit::pressed( blit::Button::DPAD_LEFT ) ) || ( blit::joystick.x < -0.3f ) )
   {
     /* Left is mostly simple, long as you're not at the edge already. */
     if ( ( 1 != g_level ) && ( 6 != g_level ) && ( 11 != g_level ) &&
@@ -160,7 +168,7 @@ void Menu::update( uint32_t p_time )
     }
   }
 
-  if ( blit::buttons.pressed & blit::Button::DPAD_RIGHT )
+  if ( ( blit::pressed( blit::Button::DPAD_RIGHT ) ) || ( blit::joystick.x > 0.3f ) )
   {
     /* Same as right. */
     if ( ( 5 != g_level ) && ( 10 != g_level ) && ( 12 != g_level ) &&
@@ -171,7 +179,7 @@ void Menu::update( uint32_t p_time )
   }
 
   /* Up is ... a little messier. */
-  if ( blit::buttons.pressed & blit::Button::DPAD_UP )
+  if ( ( blit::pressed( blit::Button::DPAD_UP ) ) || ( blit::joystick.y < -0.3f ) )
   {
     /* Simple options first. */
     if ( ( 6 <= g_level ) && 
@@ -192,7 +200,7 @@ void Menu::update( uint32_t p_time )
   }
 
   /* As is down. */
-  if ( blit::buttons.pressed & blit::Button::DPAD_DOWN )
+  if ( ( blit::pressed( blit::Button::DPAD_DOWN ) ) || ( blit::joystick.y > 0.3f ) )
   {
     /* Simple options first. */
     if ( ( 17 >= g_level ) && 
@@ -213,6 +221,7 @@ void Menu::update( uint32_t p_time )
   }
 
   /* All done. */
+  c_movetimer = 20;
   return;
 }
 

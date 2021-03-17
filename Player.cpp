@@ -39,6 +39,8 @@ Player::Player( uint16_t p_x, uint16_t p_y )
   c_direction = DIR_DOWN;
   c_animation = 0;
   c_steps = 0;
+  c_blocked = false;
+  c_pushing = false;
 
   /* All done! */
   return;
@@ -68,6 +70,27 @@ bool Player::moving( void )
 
 
 /*
+ * pushing - returns a boolean flag indicating if the player is shoving a crate.
+ */
+
+bool Player::pushing( void )
+{
+  /* Pretty simple access method. */
+  return c_pushing;
+}
+
+
+/*
+ * direction - which way is the player facing?
+ */
+
+direction_t Player::facing( void )
+{
+  return c_direction;
+}
+
+
+/*
  * render - draws the player onto the screen; assumes that the screen has an
  *          appropriate spritesheet with sprites in the right place!
  */
@@ -76,26 +99,43 @@ void Player::render( void )
 {
   blit::Rect l_sprite = blit::Rect( 0, 4, 2, 2 );
   blit::Point l_location = c_location * 8;
+  blit::Point l_crate_loc;
 
   /* Work out the correct rectangle to blit, based on the direction. Also the */
   /* precise location is offset if we're still moving.                        */
   switch( c_direction )
   {
     case DIR_DOWN:
-      l_location.y -= c_steps;
+      if ( !c_blocked )
+      {
+        l_location.y -= c_steps;
+      }
+      l_crate_loc = l_location + blit::Point( 0, 16 );
       break;    
     case DIR_LEFT:
       l_sprite.x = 6;
       l_sprite.y = 6;
-      l_location.x += c_steps;
+      if ( !c_blocked )
+      {
+        l_location.x += c_steps;
+      }
+      l_crate_loc = l_location - blit::Point( 16, 0 );
       break;
     case DIR_UP:
       l_sprite.y = 6;
-      l_location.y += c_steps;
+      if ( !c_blocked )
+      {
+        l_location.y += c_steps;
+      }
+      l_crate_loc = l_location - blit::Point( 0, 16 );
       break;
     case DIR_RIGHT:
       l_sprite.x = 6;
-      l_location.x -= c_steps;
+      if ( !c_blocked )
+      {
+        l_location.x -= c_steps;
+      }
+      l_crate_loc = l_location + blit::Point( 16, 0 );
       break;
   }
 
@@ -104,6 +144,12 @@ void Player::render( void )
 
   /* And just send the right sprite to the right location. */
   blit::screen.sprite( l_sprite, l_location );
+
+  /* And the crate, if we're pushing that. */
+  if ( c_pushing )
+  {
+    blit::screen.sprite( blit::Rect( 4, 0, 2, 2 ), l_crate_loc );
+  }
 
   /* All done. */
   return;
@@ -133,6 +179,13 @@ void Player::update( void )
     c_steps -= 2;
   }
 
+  /* If we've reached the end of the movement, clear the blocked flag. */
+  if ( 0 == c_steps )
+  {
+    c_blocked = false;
+    c_pushing = false;
+  }
+
   /* That's it, all done. */
   return;
 }
@@ -150,47 +203,53 @@ blit::Point Player::location( void )
 
 
 /*
- * move - starts the player moving in the direction specified.
+ * move - starts the player moving in the direction specified. If the blocked
+ *        flag is true, we run the animation but simply don't move.
  */
 
-void Player::move( direction_t p_direction )
+void Player::move( direction_t p_direction, bool p_blocked, bool p_pushing )
 {
   /* Check that the new location makes sense, and switch to it. */
-  switch( p_direction )
+  if ( !p_blocked )
   {
-    case DIR_DOWN:
-      if ( c_location.y < 28 )
-      {
-        c_location.y += 2;
-      }
-      else return;
-      break;
-    case DIR_LEFT:
-      if ( c_location.x > 1 )
-      {
-        c_location.x -= 2;
-      }
-      else return;
-      break;
-    case DIR_UP:
-      if ( c_location.y > 1 )
-      {
-        c_location.y -= 2;
-      }
-      else return;
-      break;
-    case DIR_RIGHT:
-      if ( c_location.x < 38 )
-      {
-        c_location.x += 2;
-      }
-      else return;
-      break;
+    switch( p_direction )
+    {
+      case DIR_DOWN:
+        if ( c_location.y < 28 )
+        {
+          c_location.y += 2;
+        }
+        else return;
+        break;
+      case DIR_LEFT:
+        if ( c_location.x > 1 )
+        {
+          c_location.x -= 2;
+        }
+        else return;
+        break;
+      case DIR_UP:
+        if ( c_location.y > 1 )
+        {
+          c_location.y -= 2;
+        }
+        else return;
+        break;
+      case DIR_RIGHT:
+        if ( c_location.x < 38 )
+        {
+          c_location.x += 2;
+        }
+        else return;
+        break;
+    }
   }
 
   /* And then remember what direction we're moving... */
   c_direction = p_direction;
   c_steps = 16;
+  c_blocked = p_blocked;
+  c_pushing = p_pushing;
 
   /* All done. */
   return;
