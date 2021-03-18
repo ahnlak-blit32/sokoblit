@@ -20,6 +20,7 @@
 #include "sokoblit.hpp"
 
 #include "Player.hpp"
+#include "assets_font.hpp"
 
 
 /* Functions. */
@@ -34,6 +35,9 @@ Player::Player( uint16_t p_x, uint16_t p_y )
   /* Save the location we've been given. */
   c_location.x = p_x;
   c_location.y = p_y;
+
+  /* Load the font we use to count progress. */
+  c_font = new blit::Font( a_font );
 
   /* And set some defaults. */
   c_direction = DIR_DOWN;
@@ -97,9 +101,10 @@ direction_t Player::facing( void )
 
 void Player::render( void )
 {
-  blit::Rect l_sprite = blit::Rect( 0, 4, 2, 2 );
+  blit::Rect  l_sprite = blit::Rect( 0, 4, 2, 2 );
   blit::Point l_location = c_location * 8;
   blit::Point l_crate_loc;
+  char        l_buffer[32];
 
   /* Work out the correct rectangle to blit, based on the direction. Also the */
   /* precise location is offset if we're still moving.                        */
@@ -151,6 +156,18 @@ void Player::render( void )
     blit::screen.sprite( blit::Rect( 4, 0, 2, 2 ), l_crate_loc );
   }
 
+  /* Lastly, write the current time and number of moves to the top. */
+  blit::screen.pen = blit::Pen( 154, 235, 0, 255 );
+  snprintf( l_buffer, 30, "Time:%02d:%02d.%d", 
+            c_deciseconds / 600, 
+            ( c_deciseconds % 600 ) / 10, 
+            ( c_deciseconds % 10 ) );
+  blit::screen.text( l_buffer, *c_font, blit::Point( blit::screen.bounds.w -1, 1 ),
+                     true, blit::TextAlign::top_right );
+  snprintf( l_buffer, 30, "Moves:%d", c_moves );
+  blit::screen.text( l_buffer, *c_font, blit::Point( 1, 1 ),
+                     true, blit::TextAlign::top_left );
+
   /* All done. */
   return;
 }
@@ -164,6 +181,19 @@ void Player::render( void )
 void Player::update( void )
 {
   static uint8_t l_delay = 2;
+  static uint8_t l_count = 10;
+
+  /* Horrible hack here to keep time, in tenths of seconds, without getting */
+  /* into complications about whether or not we're active.                  */
+  if ( l_count > 0 )
+  {
+    l_count--;
+  }
+  else
+  {
+    c_deciseconds++;
+    l_count = 10;
+  }
 
   if ( l_delay > 0 )
   {
@@ -212,6 +242,7 @@ void Player::move( direction_t p_direction, bool p_blocked, bool p_pushing )
   /* Check that the new location makes sense, and switch to it. */
   if ( !p_blocked )
   {
+    /* Sanity check that we're within the board. */
     switch( p_direction )
     {
       case DIR_DOWN:
@@ -243,6 +274,9 @@ void Player::move( direction_t p_direction, bool p_blocked, bool p_pushing )
         else return;
         break;
     }
+
+    /* And keep track of the move count. */
+    c_moves++;
   }
 
   /* And then remember what direction we're moving... */

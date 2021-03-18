@@ -213,11 +213,34 @@ bool Game::set_tile( blit::Point p_location, uint8_t p_type )
     return false;
   }
 
-  /* Relatively simple here, we have four different tiles to set. */
-  c_game_map->tiles[c_game_map->offset( p_location )] = p_type;
-  c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 0 ) )] = p_type+1;
-  c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 0, 1 ) )] = p_type+16;
-  c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 1 ) )] = p_type+17;
+  /* Relatively simple here, we have four different tiles to set - but RESET */
+  /* is a special case, we have to pick up the original floor tile.          */
+  if ( TILED_RESET == p_type )
+  {
+    /* If it was originally a crate, use an empty floor. */
+    if ( TILED_CRATE == at_game_map[c_game_map->offset( p_location )] )
+    {
+      c_game_map->tiles[c_game_map->offset( p_location )] = TILED_EMPTY;
+      c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 0 ) )] = TILED_EMPTY+1;
+      c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 0, 1 ) )] = TILED_EMPTY+16;
+      c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 1 ) )] = TILED_EMPTY+17;
+    }
+    else
+    {
+      /* Just copy the original then. */
+      c_game_map->tiles[c_game_map->offset( p_location )] = at_game_map[c_game_map->offset( p_location )];
+      c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 0 ) )] = at_game_map[c_game_map->offset( p_location + blit::Point( 1, 0 ) )];
+      c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 0, 1 ) )] = at_game_map[c_game_map->offset( p_location + blit::Point( 0, 1 ) )];
+      c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 1 ) )] = at_game_map[c_game_map->offset( p_location + blit::Point( 1, 1 ) )];
+    }
+  }
+  else
+  {
+    c_game_map->tiles[c_game_map->offset( p_location )] = p_type;
+    c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 0 ) )] = p_type+1;
+    c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 0, 1 ) )] = p_type+16;
+    c_game_map->tiles[c_game_map->offset( p_location + blit::Point( 1, 1 ) )] = p_type+17;
+  }
 
   /* All done. */
   return true;
@@ -292,7 +315,7 @@ void Game::update( uint32_t p_time )
   /* to park it where it was going...                                      */
   if ( l_was_moving && l_was_pushing )
   {
-    blit::Point l_crate = c_player[g_level]->location();
+    blit::Point l_crate = level_tile_origin( g_level ) + c_player[g_level]->location();
     switch( c_player[g_level]->facing() )
     {
       case DIR_LEFT:
@@ -365,7 +388,7 @@ void Game::update( uint32_t p_time )
       else
       {
         /* Update the underlying tilemap to reflect that the crate has moved. */
-        set_tile( l_target, TILED_EMPTY );
+        set_tile( l_target, TILED_RESET );
 
         /* Flag that we're also pushing a crate. */
         l_pushing = true;
@@ -406,7 +429,6 @@ void Game::render( uint32_t p_time, uint8_t p_zoom )
   {
     /* Drop in the player for the current level. */
     c_player[g_level]->render();
-    /*__RETURN__*/
   }
 
   /* Reset the alpha to what it was before. */

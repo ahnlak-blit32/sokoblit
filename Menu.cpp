@@ -147,6 +147,7 @@ void Menu::update( uint32_t p_time )
   /* We only respond to user input when we're fully zoomed. */
   if ( c_zoom < 100 )
   {
+    c_movetimer = 0;
     return;
   }
 
@@ -165,6 +166,7 @@ void Menu::update( uint32_t p_time )
          ( 13 != g_level ) && ( 18 != g_level ) )
     {
       g_level--;
+      c_movetimer = 20;
     }
   }
 
@@ -175,6 +177,7 @@ void Menu::update( uint32_t p_time )
          ( 17 != g_level ) && ( 22 != g_level ) )
     {
       g_level++;
+      c_movetimer = 20;
     }
   }
 
@@ -186,16 +189,19 @@ void Menu::update( uint32_t p_time )
          ( ( 11 >= g_level ) || ( 17 <= g_level ) ) )
     {
       g_level -= 5;
+      c_movetimer = 20;
     }
 
     /* And five edge cases. */
     else if ( ( 12 == g_level ) || ( 13 == g_level ) )
     {
       g_level -= 2;
+      c_movetimer = 20;
     }
     else if ( ( 14 <= g_level ) && ( 16 >= g_level ) )
     {
       g_level -= 7;
+      c_movetimer = 20;
     }
   }
 
@@ -207,21 +213,23 @@ void Menu::update( uint32_t p_time )
          ( ( 6 >= g_level ) || ( 12 <= g_level ) ) )
     {
       g_level += 5;
+      c_movetimer = 20;
     }
 
     /* And five edge cases. */
     else if ( ( 10 == g_level ) || ( 11 == g_level ) )
     {
       g_level += 2;
+      c_movetimer = 20;
     }
     else if ( ( 7 <= g_level ) && ( 9 >= g_level ) )
     {
       g_level += 7;
+      c_movetimer = 20;
     }
   }
 
   /* All done. */
-  c_movetimer = 20;
   return;
 }
 

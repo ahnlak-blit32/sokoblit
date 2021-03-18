@@ -1,11 +1,16 @@
-# All these assets will be created in assets.cpp, which CMake will
-# link automagically.
-# References can be picked up by including assets.hpp
-
+# General image assets.
 assets.cpp:
   assets/menu-splash.png:
     name: a_menu_splash
 
+# Fonts.
+assets_font.cpp:
+  assets/PressStart2P-Regular.ttf:
+    name: a_font
+    height: 8
+
+
+# Tiled maps and spritesheets.
 assets_tiled.cpp:
   prefix: at_
 

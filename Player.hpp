@@ -35,6 +35,9 @@ class Player
     uint8_t       c_steps;
     bool          c_blocked;
     bool          c_pushing;
+    uint16_t      c_moves;
+    uint32_t      c_deciseconds;
+    blit::Font   *c_font;
 
   public:
                   Player( uint16_t, uint16_t );

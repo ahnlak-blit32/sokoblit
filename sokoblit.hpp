@@ -18,11 +18,12 @@
 
 /* Constants based on tiled tiles - tinker at your peril! */
 
-#define TILED_PLAYER_HOME 76
-#define TILED_EMPTY       34
-#define TILED_CRATE       4
+#define TILED_RESET       0
 #define TILED_WALL        2
+#define TILED_CRATE       4
+#define TILED_EMPTY       34
 #define TILED_CRATE_HOME  36
+#define TILED_PLAYER_HOME 76
 
 typedef enum 
 {

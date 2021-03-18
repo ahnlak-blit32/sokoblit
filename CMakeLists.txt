@@ -8,7 +8,7 @@ project(sokoblit)
 set(PROJECT_SOURCE sokoblit.cpp Menu.cpp Game.cpp Player.cpp)
 
 # ... and any other files you want in the release here
-set(PROJECT_DISTRIBS LICENSE README.md)
+set(PROJECT_DISTRIBS LICENSE README.md OFL.txt)
 
 # Build configuration; approach this with caution!
 if(MSVC)
